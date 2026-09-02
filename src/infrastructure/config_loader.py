@@ -54,7 +54,9 @@ def load_config() -> AppConfig:
 
 def _parse_useme_urls(env: Mapping[str, str]) -> tuple[str, ...]:
     raw_value = _require_str(env, "USEME_URLS")
-    urls = tuple(url.strip() for url in raw_value.split(",") if url.strip())
+    normalized_value = raw_value.replace("\r\n", "\n")
+    chunks = normalized_value.replace(";", "\n").split("\n")
+    urls = tuple(url.strip() for url in chunks if url.strip())
     if not urls:
         raise ConfigError("USEME_URLS must contain at least one URL")
 
