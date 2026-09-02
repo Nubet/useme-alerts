@@ -1,6 +1,7 @@
 from typing import Protocol
 
 from src.domain.alerts import AlertAttempt, AlertStatus
+from src.domain.events import NewOfferDetected
 from src.domain.offers import Offer
 
 
@@ -31,4 +32,11 @@ class AlertRepository(Protocol):
 
 class OfferSource(Protocol):
     def fetch_offers(self, source_category_url: str, max_pages: int) -> list[Offer]:
+        ...
+
+
+class AlertNotifier(Protocol):
+    channel: str
+
+    def send(self, event: NewOfferDetected) -> None:
         ...

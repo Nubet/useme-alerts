@@ -1,5 +1,7 @@
+from src.application.alert_new_offers import AlertNewOffers
 from src.application.poll_useme_offers import PollUsemeOffers
 from src.infrastructure.config_loader import ConfigError, load_config
+from src.infrastructure.discord_notifier import DiscordNotifier
 from src.infrastructure.http_client import HttpClient
 from src.infrastructure.repositories import SQLiteAlertRepository, SQLiteOfferRepository
 from src.infrastructure.sqlite import create_connection, initialize_database
@@ -27,19 +29,23 @@ def main() -> None:
             offer_source=offer_source,
             offer_repository=offer_repository,
         )
+        alert_new_offers = AlertNewOffers(
+            alert_repository=alert_repository,
+            notifiers=(DiscordNotifier(config.discord_webhook_url),),
+        )
         result = poll_useme_offers.execute(
             source_category_urls=config.useme_urls,
             max_pages_per_category=config.max_pages_per_category,
         )
+        alert_result = alert_new_offers.execute(result.new_offers)
 
-        _ = alert_repository
-        _ = result
+        _ = alert_result
     finally:
         if http_client is not None:
             http_client.close()
         connection.close()
 
-    raise SystemExit("Configuration, database, and Useme source loaded. Application runtime starts in phase 5.")
+    raise SystemExit("Configuration, storage, source, and Discord alerts loaded. Application runtime starts in phase 7.")
 
 
 if __name__ == "__main__":
