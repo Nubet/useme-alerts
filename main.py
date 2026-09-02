@@ -1,3 +1,4 @@
+from src.application.poll_useme_offers import PollUsemeOffers
 from src.infrastructure.config_loader import ConfigError, load_config
 from src.infrastructure.http_client import HttpClient
 from src.infrastructure.repositories import SQLiteAlertRepository, SQLiteOfferRepository
@@ -22,15 +23,17 @@ def main() -> None:
         http_client = HttpClient()
         parser = UsemeParser()
         offer_source = UsemeOfferSource(http_client=http_client, parser=parser)
-
-        offers = offer_source.fetch_offers(
-            config.useme_urls[0],
-            max_pages=config.max_pages_per_category,
+        poll_useme_offers = PollUsemeOffers(
+            offer_source=offer_source,
+            offer_repository=offer_repository,
+        )
+        result = poll_useme_offers.execute(
+            source_category_urls=config.useme_urls,
+            max_pages_per_category=config.max_pages_per_category,
         )
 
-        _ = offer_repository
         _ = alert_repository
-        _ = offers
+        _ = result
     finally:
         if http_client is not None:
             http_client.close()
