@@ -1,6 +1,11 @@
+import sys
+
 from src.application.alert_new_offers import AlertNewOffers
 from src.application.ports import AlertNotifier
 from src.application.poll_useme_offers import PollUsemeOffers
+from src.application.run_monitoring_cycle import RunMonitoringCycle
+from src.domain.config import AppConfig
+from src.entrypoints.scheduler import Scheduler
 from src.infrastructure.config_loader import ConfigError, load_config
 from src.infrastructure.discord_notifier import DiscordNotifier
 from src.infrastructure.email_notifier import EmailNotifier
@@ -17,6 +22,7 @@ def main() -> None:
     except ConfigError as exc:
         raise SystemExit(str(exc)) from exc
 
+    run_once = "--once" in sys.argv
     connection = create_connection(config.database_path)
     http_client: HttpClient | None = None
 
@@ -36,22 +42,24 @@ def main() -> None:
             alert_repository=alert_repository,
             notifiers=notifiers,
         )
-        result = poll_useme_offers.execute(
-            source_category_urls=config.useme_urls,
-            max_pages_per_category=config.max_pages_per_category,
+        run_monitoring_cycle = RunMonitoringCycle(
+            poll_useme_offers=poll_useme_offers,
+            alert_new_offers=alert_new_offers,
         )
-        alert_result = alert_new_offers.execute(result.new_offers)
+        scheduler = Scheduler(interval_seconds=config.poll_interval_seconds)
 
-        _ = alert_result
+        if run_once:
+            scheduler.run_once(lambda: run_monitoring_cycle.execute(config))
+            return
+
+        scheduler.run_forever(lambda: run_monitoring_cycle.execute(config))
     finally:
         if http_client is not None:
             http_client.close()
         connection.close()
 
-    raise SystemExit("Configuration, storage, source, and alert channels loaded. Application runtime starts in phase 8.")
 
-
-def _build_notifiers(config) -> tuple[AlertNotifier, ...]:
+def _build_notifiers(config: AppConfig) -> tuple[AlertNotifier, ...]:
     notifiers: list[AlertNotifier] = [DiscordNotifier(config.discord_webhook_url)]
 
     if config.email_enabled:
