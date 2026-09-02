@@ -6,6 +6,7 @@ from pathlib import Path
 class AppConfig:
     useme_urls: tuple[str, ...]
     poll_interval_seconds: int
+    max_pages_per_category: int
     discord_webhook_url: str
     email_enabled: bool
     smtp_host: str | None

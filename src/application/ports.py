@@ -27,3 +27,8 @@ class AlertRepository(Protocol):
         error_message: str | None,
     ) -> None:
         ...
+
+
+class OfferSource(Protocol):
+    def fetch_offers(self, source_category_url: str, max_pages: int) -> list[Offer]:
+        ...

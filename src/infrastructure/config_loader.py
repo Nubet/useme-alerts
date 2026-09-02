@@ -16,6 +16,7 @@ def load_config() -> AppConfig:
 
     useme_urls = _parse_useme_urls(os.environ)
     poll_interval_seconds = _parse_poll_interval_seconds(os.environ)
+    max_pages_per_category = _parse_max_pages_per_category(os.environ)
     discord_webhook_url = _require_str(os.environ, "DISCORD_WEBHOOK_URL")
     email_enabled = _parse_bool(os.environ.get("EMAIL_ENABLED", "false"))
 
@@ -40,6 +41,7 @@ def load_config() -> AppConfig:
     return AppConfig(
         useme_urls=useme_urls,
         poll_interval_seconds=poll_interval_seconds,
+        max_pages_per_category=max_pages_per_category,
         discord_webhook_url=discord_webhook_url,
         email_enabled=email_enabled,
         smtp_host=smtp_host,
@@ -77,6 +79,19 @@ def _parse_poll_interval_seconds(env: Mapping[str, str]) -> int:
 
     if parsed < 30:
         raise ConfigError("POLL_INTERVAL_SECONDS must be at least 30")
+
+    return parsed
+
+
+def _parse_max_pages_per_category(env: Mapping[str, str]) -> int:
+    value = env.get("MAX_PAGES_PER_CATEGORY", "2").strip()
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise ConfigError("MAX_PAGES_PER_CATEGORY must be an integer") from exc
+
+    if parsed < 1:
+        raise ConfigError("MAX_PAGES_PER_CATEGORY must be at least 1")
 
     return parsed
 
