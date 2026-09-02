@@ -51,11 +51,18 @@ class PollUsemeOffers:
                 if self._offer_repository.exists_by_url(offer.url):
                     self._offer_repository.update_last_seen(
                         url=offer.url,
-                        detected_at=offer.detected_at.isoformat(),
+                        detected_at=offer.detected_at,
                     )
                     continue
 
-                self._offer_repository.add(offer)
+                inserted = self._offer_repository.add(offer)
+                if not inserted:
+                    self._offer_repository.update_last_seen(
+                        url=offer.url,
+                        detected_at=offer.detected_at,
+                    )
+                    continue
+
                 new_offers.append(
                     NewOfferDetected(
                         offer=offer,

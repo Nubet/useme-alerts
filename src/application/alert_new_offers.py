@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import logging
 
 from src.application.ports import AlertNotifier, AlertRepository
-from src.domain.alerts import AlertAttempt, AlertChannel, AlertStatus
+from src.domain.alerts import AlertAttempt, AlertStatus
 from src.domain.events import NewOfferDetected
 
 
@@ -33,7 +33,7 @@ class AlertNewOffers:
                 alert_id = self._alert_repository.add(
                     AlertAttempt(
                         offer_url=event.offer.url,
-                        channel=AlertChannel(notifier.channel),
+                        channel=notifier.channel,
                         status=AlertStatus.PENDING,
                         created_at=event.detected_at,
                     )
@@ -59,11 +59,11 @@ class AlertNewOffers:
                 delivered_count += 1
                 logger.info("sent %s alert for %s", notifier.channel, event.offer.url)
                 self._alert_repository.update_status(
-                    alert_id=alert_id,
-                    status=AlertStatus.SENT,
-                    sent_at=event.detected_at.isoformat(),
-                    error_message=None,
-                )
+                        alert_id=alert_id,
+                        status=AlertStatus.SENT,
+                        sent_at=event.detected_at,
+                        error_message=None,
+                    )
 
         return AlertNewOffersResult(
             delivered_count=delivered_count,

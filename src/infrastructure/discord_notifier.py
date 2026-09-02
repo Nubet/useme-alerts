@@ -1,11 +1,12 @@
 import requests
 
 from src.application.ports import AlertNotifier
+from src.domain.alerts import AlertChannel
 from src.domain.events import NewOfferDetected
 
 
 class DiscordNotifier(AlertNotifier):
-    channel = "discord"
+    channel = AlertChannel.DISCORD
 
     def __init__(self, webhook_url: str):
         self._webhook_url = webhook_url

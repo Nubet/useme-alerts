@@ -1,3 +1,4 @@
+from datetime import datetime
 import sqlite3
 
 from src.application.ports import AlertRepository, OfferRepository
@@ -16,10 +17,10 @@ class SQLiteOfferRepository(OfferRepository):
         ).fetchone()
         return row is not None
 
-    def add(self, offer: Offer) -> None:
-        self.connection.execute(
+    def add(self, offer: Offer) -> bool:
+        cursor = self.connection.execute(
             """
-            INSERT INTO offers (
+            INSERT OR IGNORE INTO offers (
                 url,
                 title,
                 source_category_url,
@@ -42,11 +43,12 @@ class SQLiteOfferRepository(OfferRepository):
             ),
         )
         self.connection.commit()
+        return cursor.rowcount > 0
 
-    def update_last_seen(self, url: str, detected_at: str) -> None:
+    def update_last_seen(self, url: str, detected_at: datetime) -> None:
         self.connection.execute(
             "UPDATE offers SET last_seen_at = ? WHERE url = ?",
-            (detected_at, url),
+            (detected_at.isoformat(), url),
         )
         self.connection.commit()
 
@@ -83,11 +85,16 @@ class SQLiteAlertRepository(AlertRepository):
         self,
         alert_id: int,
         status: AlertStatus,
-        sent_at: str | None,
+        sent_at: datetime | None,
         error_message: str | None,
     ) -> None:
         self.connection.execute(
             "UPDATE alerts SET status = ?, sent_at = ?, error_message = ? WHERE id = ?",
-            (status.value, sent_at, error_message, alert_id),
+            (
+                status.value,
+                sent_at.isoformat() if sent_at else None,
+                error_message,
+                alert_id,
+            ),
         )
         self.connection.commit()

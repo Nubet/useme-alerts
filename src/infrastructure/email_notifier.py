@@ -2,11 +2,12 @@ from email.message import EmailMessage
 import smtplib
 
 from src.application.ports import AlertNotifier
+from src.domain.alerts import AlertChannel
 from src.domain.events import NewOfferDetected
 
 
 class EmailNotifier(AlertNotifier):
-    channel = "email"
+    channel = AlertChannel.EMAIL
 
     def __init__(
         self,
