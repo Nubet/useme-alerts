@@ -1,13 +1,18 @@
 from dataclasses import dataclass
+import logging
 
 from src.application.ports import OfferRepository, OfferSource
 from src.domain.events import NewOfferDetected
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
 class PollUsemeOffersResult:
     fetched_offers_count: int
     new_offers_count: int
+    source_errors_count: int
     new_offers: tuple[NewOfferDetected, ...]
 
 
@@ -26,13 +31,20 @@ class PollUsemeOffers:
         max_pages_per_category: int,
     ) -> PollUsemeOffersResult:
         fetched_offers_count = 0
+        source_errors_count = 0
         new_offers: list[NewOfferDetected] = []
 
         for source_category_url in source_category_urls:
-            offers = self._offer_source.fetch_offers(
-                source_category_url=source_category_url,
-                max_pages=max_pages_per_category,
-            )
+            try:
+                offers = self._offer_source.fetch_offers(
+                    source_category_url=source_category_url,
+                    max_pages=max_pages_per_category,
+                )
+            except Exception:
+                source_errors_count += 1
+                logger.exception("failed to fetch offers for %s", source_category_url)
+                continue
+
             fetched_offers_count += len(offers)
 
             for offer in offers:
@@ -54,5 +66,6 @@ class PollUsemeOffers:
         return PollUsemeOffersResult(
             fetched_offers_count=fetched_offers_count,
             new_offers_count=len(new_offers),
+            source_errors_count=source_errors_count,
             new_offers=tuple(new_offers),
         )

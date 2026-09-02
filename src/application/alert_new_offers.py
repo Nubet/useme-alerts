@@ -1,8 +1,12 @@
 from dataclasses import dataclass
+import logging
 
 from src.application.ports import AlertNotifier, AlertRepository
 from src.domain.alerts import AlertAttempt, AlertChannel, AlertStatus
 from src.domain.events import NewOfferDetected
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
@@ -38,6 +42,11 @@ class AlertNewOffers:
                 try:
                     notifier.send(event)
                 except Exception as exc:
+                    logger.exception(
+                        "failed to send %s alert for %s",
+                        notifier.channel,
+                        event.offer.url,
+                    )
                     failed_count += 1
                     self._alert_repository.update_status(
                         alert_id=alert_id,
@@ -48,6 +57,7 @@ class AlertNewOffers:
                     continue
 
                 delivered_count += 1
+                logger.info("sent %s alert for %s", notifier.channel, event.offer.url)
                 self._alert_repository.update_status(
                     alert_id=alert_id,
                     status=AlertStatus.SENT,

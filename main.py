@@ -1,3 +1,4 @@
+import logging
 import sys
 
 from src.application.alert_new_offers import AlertNewOffers
@@ -10,13 +11,19 @@ from src.infrastructure.config_loader import ConfigError, load_config
 from src.infrastructure.discord_notifier import DiscordNotifier
 from src.infrastructure.email_notifier import EmailNotifier
 from src.infrastructure.http_client import HttpClient
+from src.infrastructure.logging_setup import configure_logging
 from src.infrastructure.repositories import SQLiteAlertRepository, SQLiteOfferRepository
 from src.infrastructure.sqlite import create_connection, initialize_database
 from src.infrastructure.useme_parser import UsemeParser
 from src.infrastructure.useme_source import UsemeOfferSource
 
 
+logger = logging.getLogger(__name__)
+
+
 def main() -> None:
+    configure_logging()
+
     try:
         config = load_config()
     except ConfigError as exc:
@@ -47,12 +54,13 @@ def main() -> None:
             alert_new_offers=alert_new_offers,
         )
         scheduler = Scheduler(interval_seconds=config.poll_interval_seconds)
+        task = lambda: _run_cycle(run_monitoring_cycle, config)
 
         if run_once:
-            scheduler.run_once(lambda: run_monitoring_cycle.execute(config))
+            scheduler.run_once(task)
             return
 
-        scheduler.run_forever(lambda: run_monitoring_cycle.execute(config))
+        scheduler.run_forever(task)
     finally:
         if http_client is not None:
             http_client.close()
@@ -75,6 +83,13 @@ def _build_notifiers(config: AppConfig) -> tuple[AlertNotifier, ...]:
         )
 
     return tuple(notifiers)
+
+
+def _run_cycle(run_monitoring_cycle: RunMonitoringCycle, config: AppConfig) -> None:
+    try:
+        run_monitoring_cycle.execute(config)
+    except Exception:
+        logger.exception("monitoring cycle crashed")
 
 
 if __name__ == "__main__":
