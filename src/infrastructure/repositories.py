@@ -1,5 +1,5 @@
-from datetime import datetime
 import sqlite3
+from datetime import datetime
 
 from src.application.ports import AlertRepository, OfferRepository
 from src.domain.alerts import AlertAttempt, AlertStatus
@@ -79,7 +79,7 @@ class SQLiteAlertRepository(AlertRepository):
             ),
         )
         self.connection.commit()
-        return int(cursor.lastrowid)
+        return int(cursor.lastrowid) if cursor.lastrowid is not None else 0
 
     def update_status(
         self,

@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 
 from src.application.ports import OfferRepository, OfferSource
 from src.domain.events import NewOfferDetected
-
 
 logger = logging.getLogger(__name__)
 

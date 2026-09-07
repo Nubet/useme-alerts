@@ -32,7 +32,13 @@ class UsemeParser:
         if next_link is None:
             return None
 
-        href = next_link.get("href", "").strip()
+        href_attr = next_link.get("href", "")
+        if isinstance(href_attr, list):
+            href_attr = href_attr[0] if href_attr else ""
+        elif href_attr is None:
+            href_attr = ""
+
+        href = str(href_attr).strip()
         if not href:
             return None
 
@@ -51,7 +57,13 @@ class UsemeParser:
         if not title:
             return None
 
-        offer_url = urljoin("https://useme.com", link.get("href", ""))
+        href_attr = link.get("href", "")
+        if isinstance(href_attr, list):
+            href_attr = href_attr[0] if href_attr else ""
+        elif href_attr is None:
+            href_attr = ""
+
+        offer_url = urljoin("https://useme.com", str(href_attr))
         if not offer_url.startswith("https://useme.com/"):
             return None
 

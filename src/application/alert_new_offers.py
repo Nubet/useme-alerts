@@ -1,10 +1,9 @@
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 
 from src.application.ports import AlertNotifier, AlertRepository
 from src.domain.alerts import AlertAttempt, AlertStatus
 from src.domain.events import NewOfferDetected
-
 
 logger = logging.getLogger(__name__)
 
@@ -59,11 +58,11 @@ class AlertNewOffers:
                 delivered_count += 1
                 logger.info("sent %s alert for %s", notifier.channel, event.offer.url)
                 self._alert_repository.update_status(
-                        alert_id=alert_id,
-                        status=AlertStatus.SENT,
-                        sent_at=event.detected_at,
-                        error_message=None,
-                    )
+                    alert_id=alert_id,
+                    status=AlertStatus.SENT,
+                    sent_at=event.detected_at,
+                    error_message=None,
+                )
 
         return AlertNewOffersResult(
             delivered_count=delivered_count,

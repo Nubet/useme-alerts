@@ -1,5 +1,5 @@
-from email.message import EmailMessage
 import smtplib
+from email.message import EmailMessage
 
 from src.application.ports import AlertNotifier
 from src.domain.alerts import AlertChannel

@@ -1,8 +1,8 @@
+import os
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Mapping
 
 from dotenv import load_dotenv
-import os
 
 from src.domain.config import AppConfig
 
@@ -153,6 +153,5 @@ def _validate_email_config(
 
     if missing:
         raise ConfigError(
-            "Email delivery is enabled but required variables are missing: "
-            + ", ".join(missing)
+            "Email delivery is enabled but required variables are missing: " + ", ".join(missing)
         )

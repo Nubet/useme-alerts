@@ -1,11 +1,10 @@
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from time import perf_counter
 
 from src.application.alert_new_offers import AlertNewOffers
 from src.application.poll_useme_offers import PollUsemeOffers
 from src.domain.config import AppConfig
-
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,8 @@ class RunMonitoringCycle:
 
         duration_seconds = perf_counter() - started_at
         logger.info(
-            "monitoring cycle finished: fetched=%s new=%s source_errors=%s alerts_sent=%s alerts_failed=%s duration=%.2fs",
+            "monitoring cycle finished: fetched=%s new=%s source_errors=%s "
+            "alerts_sent=%s alerts_failed=%s duration=%.2fs",
             poll_result.fetched_offers_count,
             poll_result.new_offers_count,
             poll_result.source_errors_count,
