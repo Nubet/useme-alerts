@@ -28,7 +28,7 @@ class DiscordNotifier(AlertNotifier):
             f"Title: {event.offer.title}\n"
             f"Author: {author}\n"
             f"Category URL: {event.offer.source_category_url}\n"
-            f"Detected at: {event.detected_at.isoformat()}\n"
+            f"Detected at: {event.detected_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
             f"Expires: {expires_label}\n"
             f"Excerpt: {excerpt}\n\n"
             f"Link:\n{event.offer.url}"
