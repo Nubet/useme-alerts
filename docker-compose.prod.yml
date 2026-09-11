@@ -1,0 +1,9 @@
+services:
+  useme-alerts:
+    image: ghcr.io/nubet/useme-alerts:latest
+    container_name: useme-alerts
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
